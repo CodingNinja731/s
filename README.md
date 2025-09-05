@@ -67,6 +67,38 @@ The frontend is a standard Vite application.
     npm run dev
     ```
 
+## Deployment
+
+This project is designed to be deployed with the frontend and backend as separate services.
+
+### Backend on Render
+
+1.  **Create a new "Web Service"** on Render and connect it to your GitHub repository.
+2.  **Settings:**
+    *   **Environment:** `Docker`
+    *   **Root Directory:** Leave blank (Render will detect the `docker-compose.yml`)
+    *   **Docker Compose File:** `docker-compose.yml` (This should be the default)
+    *   **Service Name (in compose file):** `backend`
+3.  **Database:** Create a new **MongoDB** instance on Render or use a free tier from MongoDB Atlas.
+4.  **Environment Variables:**
+    *   Click on the "Environment" tab for your backend service.
+    *   Add a secret file for your `.env` content, or add the following environment variables manually:
+        *   `MONGO_URI`: The connection string for your MongoDB Atlas or Render MongoDB instance.
+        *   `JWT_SECRET`: A long, secure, random string for signing tokens.
+        *   `PORT`: `5000` (or whatever port you have configured). Render sets this automatically, but it's good to be aware of.
+5.  **Deploy:** Click "Create Web Service". Render will build and deploy your backend. Your API URL will be provided on the dashboard.
+
+### Frontend on Vercel
+
+1.  **Create a new "Project"** on Vercel and connect it to your GitHub repository.
+2.  **Build & Development Settings:**
+    *   **Framework Preset:** `Vite`
+    *   **Root Directory:** `frontend`
+3.  **Environment Variables:**
+    *   Add an environment variable for your backend API URL:
+        *   `VITE_API_URL`: `https://your-render-backend-url.onrender.com`
+4.  **Deploy:** Click "Deploy". Vercel will build and deploy your frontend.
+
 ## API Endpoints
 
 The backend provides the following RESTful API endpoints:
