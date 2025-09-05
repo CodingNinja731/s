@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - MONGO_URI=mongodb://db:27017/student-guidance
+      - JWT_SECRET=${JWT_SECRET} # Injects the secret from a .env file
+    volumes:
+      - ./backend:/app/backend # Mounts the local backend code into the container
+      - /app/backend/node_modules # Excludes the local node_modules from being mounted
+
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
