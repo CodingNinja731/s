@@ -11,13 +11,15 @@ services:
       - db
     environment:
       - MONGO_URI=mongodb://db:27017/student-guidance
-      - JWT_SECRET=${JWT_SECRET} # Injects the secret from a .env file
+      - JWT_SECRET=${JWT_SECRET}
     volumes:
-      - ./backend:/app/backend # Mounts the local backend code into the container
-      - /app/backend/node_modules # Excludes the local node_modules from being mounted
+      # Mount the local backend code into the container at /app
+      - ./backend:/app
+      # Use an anonymous volume to prevent local node_modules from overwriting the container's
+      - /app/node_modules
 
   db:
-    image: mongo:latest
+    image: mongo:6.0 # Use a specific, stable version
     ports:
       - "27017:27017"
     volumes:
@@ -25,3 +27,4 @@ services:
 
 volumes:
   mongo-data:
+    driver: local

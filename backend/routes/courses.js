@@ -1,10 +1,32 @@
 const express = require('express');
 const router = express.Router();
+const Joi = require('joi');
 const Course = require('../models/Course');
+const auth = require('../middleware/auth');
 
-// @route   GET api/courses
-// @desc    Get all courses
-// @access  Public
+/**
+ * @swagger
+ * tags:
+ *   name: Courses
+ *   description: Course management
+ */
+
+/**
+ * @swagger
+ * /api/courses:
+ *   get:
+ *     summary: Retrieve a list of all courses
+ *     tags: [Courses]
+ *     responses:
+ *       200:
+ *         description: A list of courses.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Course'
+ */
 router.get('/', async (req, res) => {
   try {
     const courses = await Course.find().populate('colleges');
@@ -15,25 +37,43 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   POST api/courses
-// @desc    Create a new course
-// @access  Public (for now, should be private/admin in a real app)
-router.post('/', async (req, res) => {
-  const { name, stream, careerPaths, colleges } = req.body;
+const courseSchema = Joi.object({
+  name: Joi.string().min(3).required(),
+  stream: Joi.string().valid('Arts', 'Science', 'Commerce', 'Vocational').required(),
+  careerPaths: Joi.array().items(Joi.string()),
+  colleges: Joi.array().items(Joi.string().hex().length(24)),
+});
 
-  // Basic validation
-  if (!name || !stream) {
-    return res.status(400).json({ msg: 'Please provide name and stream' });
+/**
+ * @swagger
+ * /api/courses:
+ *   post:
+ *     summary: Create a new course
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Course'
+ *     responses:
+ *       201:
+ *         description: The created course.
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/', auth, async (req, res) => {
+  const { error, value } = courseSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ msg: error.details[0].message });
   }
 
   try {
-    const newCourse = new Course({
-      name,
-      stream,
-      careerPaths,
-      colleges,
-    });
-
+    const newCourse = new Course(value);
     const course = await newCourse.save();
     res.status(201).json(course);
   } catch (err) {
